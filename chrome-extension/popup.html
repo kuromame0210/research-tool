@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メルカリリサーチツール</title>
+    <style>
+        body {
+            width: 300px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 12px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📊 リサーチツール</div>
+        <div class="subtitle">メルカリ商品データ収集</div>
+    </div>
+
+    <!-- 画像スライドショー -->
+    <div id="imageSlideshow" style="width: 100%; height: 150px; margin-bottom: 15px; position: relative; overflow: hidden; border-radius: 8px;">
+        <img id="currentImage" style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s;" alt="スライドショー">
+    </div>
+
+    <!-- 字幕表示 -->
+    <div id="subtitleDisplay" style="background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; text-align: center; min-height: 20px;">
+        字幕がここに表示されます
+    </div>
+
+    <button id="adminBtn" class="btn btn-primary">管理画面を開く</button>
+    
+    <div id="status" class="status" style="display: none;"></div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

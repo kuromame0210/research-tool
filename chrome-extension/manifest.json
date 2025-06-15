@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "メルカリリサーチツール データ収集",
+  "version": "3.0.0",
+  "description": "メルカリ商品データを自動収集してSupabaseに保存",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://jp.mercari.com/*",
+    "https://*.supabase.co/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://jp.mercari.com/item/*",
+        "https://jp.mercari.com/search*",
+        "https://jp.mercari.com/category/*",
+        "https://jp.mercari.com/*"
+      ],
+      "js": [
+        "lib/supabase-js.min.js",
+        "config.js",
+        "utils.js",
+        "mercari-collector.js"
+      ],
+      "css": [
+        "styles.css"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["config.js", "lib/supabase-js.min.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "メルカリリサーチツール"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

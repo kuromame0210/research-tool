@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome拡張機能テスト</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 20px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .config-form {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .config-form input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Chrome拡張機能テストページ</h1>
+    
+    <div class="test-section">
+        <h2>📋 テスト手順</h2>
+        <ol>
+            <li>Chrome拡張機能を「デベロッパーモード」で読み込み</li>
+            <li>Supabase設定を入力</li>
+            <li>各機能をテスト実行</li>
+            <li>結果を確認</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>⚙️ Supabase設定</h2>
+        <div class="config-form">
+            <input type="text" id="supabaseUrl" placeholder="Supabase URL (例: https://xxx.supabase.co)">
+            <input type="password" id="supabaseKey" placeholder="Supabase Anon Key">
+            <input type="text" id="adminUrl" placeholder="管理画面URL (例: http://localhost:3002)" value="http://localhost:3002">
+            <button class="test-button" onclick="saveConfig()">設定を保存</button>
+        </div>
+        <div id="configResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔌 接続テスト</h2>
+        <button class="test-button" onclick="testSupabaseConnection()">Supabase接続テスト</button>
+        <button class="test-button" onclick="testExtensionInstall()">拡張機能インストール確認</button>
+        <div id="connectionResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🛠️ 機能テスト</h2>
+        <button class="test-button" onclick="testConfigLoad()">設定読み込みテスト</button>
+        <button class="test-button" onclick="testKeywordFilter()">キーワードフィルターテスト</button>
+        <button class="test-button" onclick="testPriceCalculation()">価格計算テスト</button>
+        <button class="test-button" onclick="testDataSave()">データ保存テスト</button>
+        <button class="test-button" onclick="testListingFunction()">出品機能テスト</button>
+        <div id="functionResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📄 メルカリページテスト</h2>
+        <p>以下のリンクで拡張機能の動作をテストできます：</p>
+        <ul>
+            <li><a href="https://jp.mercari.com/item/m12345678901" target="_blank">メルカリ商品詳細ページ例</a></li>
+            <li><a href="https://jp.mercari.com/search?keyword=%E3%82%B9%E3%83%9E%E3%83%9B" target="_blank">メルカリ検索結果ページ例</a></li>
+        </ul>
+        <div class="info">
+            <strong>確認項目：</strong>
+            <ul>
+                <li>リサーチツールボタンが表示されるか</li>
+                <li>データ収集ボタンが動作するか</li>
+                <li>Amazon検索ボタンが動作するか</li>
+                <li>管理画面ボタンが動作するか</li>
+                <li><strong>🆕 出品するボタンが表示されるか</strong></li>
+                <li><strong>🆕 出品機能が正常に動作するか</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 テスト結果ログ</h2>
+        <div id="testLog" style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto;"></div>
+        <button class="test-button" onclick="clearLog()">ログクリア</button>
+    </div>
+
+    <script>
+        let testLog = '';
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            testLog += `[${timestamp}] ${message}\n`;
+            document.getElementById('testLog').textContent = testLog;
+        }
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `test-result ${type}`;
+            log(`${type.toUpperCase()}: ${message}`);
+        }
+
+        function saveConfig() {
+            const url = document.getElementById('supabaseUrl').value;
+            const key = document.getElementById('supabaseKey').value;
+            const adminUrl = document.getElementById('adminUrl').value;
+
+            if (!url || !key) {
+                showResult('configResult', 'URLとAnon Keyの両方を入力してください', 'error');
+                return;
+            }
+
+            // Chrome Storageに保存（拡張機能がインストールされている場合）
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                chrome.storage.sync.set({
+                    supabaseUrl: url,
+                    supabaseKey: key,
+                    adminPanelUrl: adminUrl
+                }, function() {
+                    showResult('configResult', '設定を保存しました', 'success');
+                });
+            } else {
+                // ローカルストレージに保存（テスト用）
+                localStorage.setItem('test_supabaseUrl', url);
+                localStorage.setItem('test_supabaseKey', key);
+                localStorage.setItem('test_adminPanelUrl', adminUrl);
+                showResult('configResult', 'テスト用ローカルストレージに保存しました', 'success');
+            }
+        }
+
+        function testExtensionInstall() {
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                showResult('connectionResult', '✅ Chrome拡張機能が正常にインストールされています', 'success');
+            } else {
+                showResult('connectionResult', '❌ Chrome拡張機能がインストールされていません', 'error');
+            }
+        }
+
+        function testSupabaseConnection() {
+            const url = document.getElementById('supabaseUrl').value || localStorage.getItem('test_supabaseUrl');
+            const key = document.getElementById('supabaseKey').value || localStorage.getItem('test_supabaseKey');
+
+            if (!url || !key) {
+                showResult('connectionResult', '❌ Supabase設定が不完全です', 'error');
+                return;
+            }
+
+            showResult('connectionResult', '接続テスト中...', 'info');
+
+            // ローカルのSupabaseライブラリを使用
+            if (typeof window.supabase !== 'undefined') {
+                // すでにSupabaseライブラリが読み込まれている場合
+                testSupabaseConnectionDirect(url, key);
+            } else {
+                // ローカルライブラリを読み込み
+                const script = document.createElement('script');
+                script.src = './lib/supabase-js.min.js';
+                script.onload = function() {
+                    if (window.supabase) {
+                        testSupabaseConnectionDirect(url, key);
+                    } else {
+                        showResult('connectionResult', '❌ Supabaseライブラリの初期化に失敗しました', 'error');
+                    }
+                };
+                script.onerror = function() {
+                    // ローカルファイルが失敗した場合は、CDNからの読み込みを試行
+                    loadSupabaseFromCDNTest(url, key);
+                };
+                
+                document.head.appendChild(script);
+            }
+        }
+
+        function testSupabaseConnectionDirect(url, key) {
+            try {
+                const client = window.supabase.createClient(url, key);
+                
+                // 簡単な接続テスト
+                client.from('flea_market_research_platforms').select('count').limit(1)
+                    .then(result => {
+                        if (result.error) {
+                            showResult('connectionResult', `❌ 接続エラー: ${result.error.message}`, 'error');
+                        } else {
+                            showResult('connectionResult', '✅ Supabase接続成功', 'success');
+                        }
+                    })
+                    .catch(error => {
+                        showResult('connectionResult', `❌ 接続エラー: ${error.message}`, 'error');
+                    });
+            } catch (error) {
+                showResult('connectionResult', `❌ クライアント作成エラー: ${error.message}`, 'error');
+            }
+        }
+
+        function loadSupabaseFromCDNTest(url, key) {
+            showResult('connectionResult', 'CDNからSupabaseライブラリを読み込み中...', 'info');
+            
+            // Supabaseライブラリを動的に読み込み
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+            script.onload = function() {
+                if (window.supabase) {
+                    testSupabaseConnectionDirect(url, key);
+                } else {
+                    showResult('connectionResult', '❌ Supabaseライブラリの初期化に失敗しました', 'error');
+                }
+            };
+            script.onerror = function() {
+                showResult('connectionResult', '❌ Supabaseライブラリの読み込みに失敗しました', 'error');
+            };
+            
+            document.head.appendChild(script);
+        }
+
+        function testConfigLoad() {
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                chrome.storage.sync.get(['supabaseUrl', 'supabaseKey', 'adminPanelUrl'], function(result) {
+                    if (result.supabaseUrl && result.supabaseKey) {
+                        showResult('functionResult', '✅ Chrome Storage設定読み込み成功', 'success');
+                    } else {
+                        showResult('functionResult', '❌ Chrome Storage設定が不完全', 'error');
+                    }
+                });
+            } else {
+                const url = localStorage.getItem('test_supabaseUrl');
+                const key = localStorage.getItem('test_supabaseKey');
+                if (url && key) {
+                    showResult('functionResult', '✅ テスト用設定読み込み成功', 'success');
+                } else {
+                    showResult('functionResult', '❌ テスト用設定が不完全', 'error');
+                }
+            }
+        }
+
+        function testKeywordFilter() {
+            // キーワードフィルターのテスト
+            const testTitle = "ジャンク品 iPhone 破損あり";
+            const testDescription = "動作不良のため格安で出品します";
+            
+            showResult('functionResult', `🧪 キーワードフィルターテスト実行中...\nテスト対象: "${testTitle}"`, 'info');
+            
+            // 実際のフィルタリング関数をテスト（拡張機能が読み込まれている場合）
+            if (typeof checkKeywordFilter === 'function') {
+                checkKeywordFilter(testTitle, testDescription)
+                    .then(isFiltered => {
+                        showResult('functionResult', 
+                            `✅ キーワードフィルターテスト完了\n結果: ${isFiltered ? 'フィルタ対象' : '正常商品'}`, 
+                            'success'
+                        );
+                    })
+                    .catch(error => {
+                        showResult('functionResult', `❌ キーワードフィルターエラー: ${error.message}`, 'error');
+                    });
+            } else {
+                showResult('functionResult', '❌ キーワードフィルター関数が見つかりません', 'error');
+            }
+        }
+
+        function testPriceCalculation() {
+            const testPrice = 10000;
+            showResult('functionResult', `🧪 価格計算テスト実行中...\n仕入れ価格: ¥${testPrice.toLocaleString()}`, 'info');
+            
+            if (typeof calculateListingPrice === 'function') {
+                calculateListingPrice(testPrice)
+                    .then(listingPrice => {
+                        const profit = listingPrice - testPrice;
+                        showResult('functionResult', 
+                            `✅ 価格計算テスト完了\n出品価格: ¥${listingPrice.toLocaleString()}\n利益: ¥${profit.toLocaleString()}`, 
+                            'success'
+                        );
+                    })
+                    .catch(error => {
+                        showResult('functionResult', `❌ 価格計算エラー: ${error.message}`, 'error');
+                    });
+            } else {
+                showResult('functionResult', '❌ 価格計算関数が見つかりません', 'error');
+            }
+        }
+
+        function testDataSave() {
+            const testData = {
+                url: 'https://jp.mercari.com/item/test123',
+                title: 'テスト商品',
+                price: '5000',
+                seller: 'テスト出品者',
+                images: ['https://example.com/image1.jpg'],
+                productInfo: '新品・未使用',
+                description: 'テスト用の商品説明',
+                checkout: '購入可能',
+                sellerCode: 'test_seller'
+            };
+
+            showResult('functionResult', '🧪 データ保存テスト実行中...', 'info');
+            
+            if (typeof saveProductData === 'function') {
+                saveProductData(testData)
+                    .then(result => {
+                        if (result.success) {
+                            showResult('functionResult', 
+                                `✅ データ保存テスト完了\nID: ${result.id}\n出品価格: ¥${result.listingPrice?.toLocaleString() || 'N/A'}\nフィルタ: ${result.isFiltered ? 'あり' : 'なし'}`, 
+                                'success'
+                            );
+                        } else {
+                            showResult('functionResult', `❌ データ保存失敗: ${result.error}`, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showResult('functionResult', `❌ データ保存エラー: ${error.message}`, 'error');
+                    });
+            } else {
+                showResult('functionResult', '❌ データ保存関数が見つかりません', 'error');
+            }
+        }
+
+        function testListingFunction() {
+            const testData = {
+                url: 'https://jp.mercari.com/item/test123',
+                title: 'テスト商品 iPhone 13 Pro',
+                price: '50000',
+                seller: 'テスト出品者',
+                images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
+                productInfo: '目立った傷や汚れなし',
+                description: 'iPhone 13 Pro の中古品です。動作に問題はありません。',
+                checkout: '購入可能',
+                sellerCode: 'test_seller'
+            };
+
+            showResult('functionResult', '🧪 出品機能テスト実行中...', 'info');
+            
+            if (typeof saveProductForListing === 'function') {
+                saveProductForListing(testData)
+                    .then(result => {
+                        if (result.success) {
+                            showResult('functionResult', 
+                                `✅ 出品機能テスト完了\nID: ${result.id}\n出品価格: ¥${result.listingPrice?.toLocaleString() || 'N/A'}\nフィルタ: ${result.isFiltered ? 'あり' : 'なし'}\nAmazon状態: ${result.amazonData?.condition || 'N/A'}\nAmazonタイトル: ${result.amazonData?.title || 'N/A'}`, 
+                                'success'
+                            );
+                        } else {
+                            showResult('functionResult', `❌ 出品機能テスト失敗: ${result.error}`, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showResult('functionResult', `❌ 出品機能テストエラー: ${error.message}`, 'error');
+                    });
+            } else {
+                showResult('functionResult', '❌ 出品機能が見つかりません', 'error');
+            }
+        }
+
+        function clearLog() {
+            testLog = '';
+            document.getElementById('testLog').textContent = '';
+        }
+
+        // ページ読み込み時の初期設定
+        document.addEventListener('DOMContentLoaded', function() {
+            log('テストページが読み込まれました');
+            
+            // 保存済み設定の復元
+            const savedUrl = localStorage.getItem('test_supabaseUrl');
+            const savedKey = localStorage.getItem('test_supabaseKey');
+            const savedAdminUrl = localStorage.getItem('test_adminPanelUrl');
+            
+            if (savedUrl) document.getElementById('supabaseUrl').value = savedUrl;
+            if (savedKey) document.getElementById('supabaseKey').value = savedKey;
+            if (savedAdminUrl) document.getElementById('adminUrl').value = savedAdminUrl;
+            
+            testExtensionInstall();
+        });
+    </script>
+</body>
+</html>
