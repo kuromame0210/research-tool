@@ -2,14 +2,14 @@
 -- Supabaseで実行してください
 
 -- NGワードテーブル作成
-CREATE TABLE IF NOT EXISTS ng_keywords (
+CREATE TABLE IF NOT EXISTS flea_market_research_ng_keywords (
   id SERIAL PRIMARY KEY,
   keyword TEXT NOT NULL UNIQUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- NG出品者テーブル作成
-CREATE TABLE IF NOT EXISTS ng_sellers (
+CREATE TABLE IF NOT EXISTS flea_market_research_ng_sellers (
   id SERIAL PRIMARY KEY,
   platform VARCHAR(20) NOT NULL,
   seller_id TEXT NOT NULL,
@@ -18,11 +18,11 @@ CREATE TABLE IF NOT EXISTS ng_sellers (
 );
 
 -- インデックス作成（検索高速化）
-CREATE INDEX IF NOT EXISTS idx_ng_keywords_keyword ON ng_keywords(keyword);
-CREATE INDEX IF NOT EXISTS idx_ng_sellers_platform_seller ON ng_sellers(platform, seller_id);
+CREATE INDEX IF NOT EXISTS idx_flea_market_research_ng_keywords_keyword ON flea_market_research_ng_keywords(keyword);
+CREATE INDEX IF NOT EXISTS idx_flea_market_research_ng_sellers_platform_seller ON flea_market_research_ng_sellers(platform, seller_id);
 
 -- NGワードデータ挿入
-INSERT INTO ng_keywords (keyword) VALUES
+INSERT INTO flea_market_research_ng_keywords (keyword) VALUES
 ('Copic'),
 ('IL BISONTE'),
 ('Lindt'),

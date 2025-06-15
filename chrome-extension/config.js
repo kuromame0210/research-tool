@@ -13,7 +13,9 @@ const TABLE_NAMES = {
     PRODUCTS: 'flea_market_research_products',
     KEYWORD_FILTERS: 'flea_market_research_keyword_filters',
     PRICE_TABLES: 'flea_market_research_price_tables',
-    PRICE_RANGES: 'flea_market_research_price_ranges'
+    PRICE_RANGES: 'flea_market_research_price_ranges',
+    NG_KEYWORDS: 'flea_market_research_ng_keywords',
+    NG_SELLERS: 'flea_market_research_ng_sellers'
 };
 
 // 管理画面URL（デフォルト値）

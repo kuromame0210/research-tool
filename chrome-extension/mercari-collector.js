@@ -286,7 +286,7 @@ async function checkNGSeller(sellerName, sellerCode) {
         }
         
         const { data, error } = await supabase
-            .from('ng_sellers')
+            .from(window.RESEARCH_TOOL_CONFIG.TABLE_NAMES.NG_SELLERS)
             .select('*')
             .eq('platform', 'メルカリ')
             .eq('seller_id', sellerCode);
@@ -318,7 +318,7 @@ async function checkNGKeywords(productTitle, sellerName) {
         }
         
         const { data, error } = await supabase
-            .from('ng_keywords')
+            .from(window.RESEARCH_TOOL_CONFIG.TABLE_NAMES.NG_KEYWORDS)
             .select('keyword');
         
         if (error) {
